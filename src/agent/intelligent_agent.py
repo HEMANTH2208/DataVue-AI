@@ -357,7 +357,10 @@ class IntelligentAgent:
             try:
                 llm_response: LLMResponse = self._llm.chat(messages, tool_specs)
             except Exception as exc:
+                import traceback
                 print(f"[LLM Error] {exc}")
+                print(f"[LLM Error Stack] {traceback.format_exc()}")
+                print("[LLM Error] Falling back to MockProvider for testing...")
                 from src.services.llm_service import MockProvider
                 self._llm = MockProvider()
                 llm_response = self._llm.chat(messages, tool_specs)
@@ -495,7 +498,25 @@ class IntelligentAgent:
         """Build an enriched system prompt with context and constraints."""
         from src.services.llm_service import SYSTEM_PROMPT
         
-        prompt = SYSTEM_PROMPT
+        # Inject active database context
+        db_source = "default"
+        db_file = "data/ecommerce.db"
+        try:
+            from src.database.resolver import active_session_id, _session_databases
+            sid = active_session_id.get()
+            if sid and sid in _session_databases:
+                db_source = _session_databases[sid].source_type
+                db_file = _session_databases[sid].database_path
+        except Exception:
+            pass
+
+        db_context = f"\n\n## ACTIVE DATABASE CONTEXT\n- ACTIVE DATABASE SOURCE: {db_source}\n- ACTIVE DATABASE PATH: {db_file}\n"
+        if db_source == "uploaded":
+            db_context += "- IMPORTANT: You are using the user's uploaded custom dataset database. Do NOT reference default e-commerce database tables/columns (orders, products, order_items, reviews, customers) unless those exact tables exist in the schema. Run schema-first queries only."
+        else:
+            db_context += "- You are using the default e-commerce database."
+
+        prompt = SYSTEM_PROMPT + db_context
         
         prompt += "\n\n## ═══════════════════════════════════════════════════════════\n"
         prompt += "## CURRENT ANALYTICAL TASK\n"
