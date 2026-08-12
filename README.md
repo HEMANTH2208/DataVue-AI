@@ -1,195 +1,628 @@
-# LLMSQL — Agentic AI Database & Visualization Assistant
+<div align="center">
 
-> Ask questions in plain English → get SQL queries, interactive charts, and AI insights from your database — instantly.
+# 🧠 DataMind AI
 
-## 🎉 NEW: Intelligent Agent Mode
+### *Transform Natural Language into Database Insights*
 
-DataMind AI now features an **Intelligent Agent** with:
-- ✅ **Deep Question Understanding** - Analyzes intent before acting
-- ✅ **Multi-Step Analytical Reasoning** - Handles complex nested questions correctly
-- ✅ **Result Validation** - Checks every answer against requirements  
-- ✅ **Automatic Error Correction** - Fixes issues and retries
-- ✅ **Data Grounding** - All explanations validated against actual results
-- ✅ **Multiple Visualizations** - Generates appropriate charts for each analytical component
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com/)
+[![Gemini](https://img.shields.io/badge/Gemini-8E75B2?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
-**Try it at:** `/api/query/intelligent/stream` (original endpoint preserved at `/api/query/stream`)
+**Ask questions in plain English → Get SQL, Interactive Charts & AI Insights — Instantly**
 
-See [INTELLIGENT_AGENT_UPGRADE.md](INTELLIGENT_AGENT_UPGRADE.md) for details.
+[🚀 Quick Start](#-quick-start) • [✨ Features](#-key-features) • [🎯 Demo](#-try-it-now) • [📚 Documentation](#-documentation)
+
+<img src="https://img.shields.io/badge/Status-Production%20Ready-success?style=for-the-badge" />
+
+</div>
 
 ---
 
-## 💡 What LLMSQL Does (Step-by-Step)
+## 🌟 What is DataMind AI?
 
-**LLMSQL** is an **Agentic AI Database & Visualization Assistant**. It allows non-technical users to query real databases using natural language.
+**DataMind AI** is an intelligent database assistant that bridges the gap between natural language and data analytics. Built with cutting-edge agentic AI, it enables **anyone** to query databases, generate visualizations, and extract insights—no SQL knowledge required.
 
-When a user asks a question, LLMSQL executes a 7-step agentic workflow:
+### 🎯 Perfect For
 
-```mermaid
-flowchart TD
-    User([1. User Natural Language Question]) --> Memory[2. ConversationManager Store]
-    Memory --> Agent[3. LLMSQL Agent Core]
+- 📊 **Business Analysts** - Query data without learning SQL
+- 💼 **Product Managers** - Get instant insights for decision-making
+- 👨‍💻 **Developers** - Rapid database exploration and prototyping
+- 🎓 **Students & Educators** - Learn databases through natural interaction
+- 🏢 **Enterprise Teams** - Democratize data access across organizations
 
-    subgraph LLMSQL Registered Tool Menu (PS §4.2)
-        Agent -->|Schema Inquiry| T1[get_schema]
-        Agent -->|Data Query| T2[execute_query]
-        Agent -->|Architecture Query| T3[generate_flowchart]
-        Agent -->|Data Visualization| T4[generate_chart]
-        Agent -->|Executive Summaries| T5[explain_data]
-    end
+---
 
-    T1 --> DB[(ecommerce.db SQLite)]
-    T2 --> DB
-    DB --> Results[4. Structured Results & Guardrails]
-    Results --> T4
-    Results --> T5
-    T3 --> UI
-    T4 --> UI([5. Glassmorphic Dashboard])
-    T5 --> UI
+## ✨ Key Features
+
+### 🤖 **Dual Agent Architecture**
+
+<table>
+<tr>
+<td width="50%">
+
+#### **Classic Agent** 
+*Fast & Straightforward*
+- ⚡ Rapid query execution
+- 🎯 Single-step operations
+- 📈 Automatic visualizations
+- 💬 Conversational memory
+
+</td>
+<td width="50%">
+
+#### **Intelligent Agent** ⭐ NEW
+*Production-Quality Analytics*
+- 🧠 Deep question understanding
+- 🔗 Multi-step analytical reasoning
+- ✅ Result validation & correction
+- 🎨 Multiple coordinated visualizations
+- 🛡️ **NEVER generates partial answers**
+
+</td>
+</tr>
+</table>
+
+### 🛠️ **5 Powerful Tools**
+
+| Tool | Description | Example |
+|:-----|:------------|:--------|
+| 🔍 **Schema Discovery** | Inspect database structure, relationships, and sample data | *"What tables are in the database?"* |
+| ⚡ **Query Executor** | Execute validated SQL with built-in guardrails | *"Top 5 products by revenue"* |
+| 📊 **Data Visualizer** | Auto-generate Plotly charts (Bar, Line, Pie, Scatter) | *"Show monthly sales trend"* |
+| 🗺️ **System Diagrammer** | Generate ER diagrams and flowcharts | *"Show me the database schema"* |
+| 💡 **Insight Explainer** | Extract key statistics and business insights | *"Explain the revenue distribution"* |
+
+### 🔐 **Enterprise-Grade Security**
+
+- ✅ **SQL Injection Protection** - Token-based validation using `sqlparse`
+- ✅ **Read-Only Enforcement** - Only `SELECT` queries allowed
+- ✅ **Multi-Statement Blocking** - Prevents batch SQL attacks
+- ✅ **Input Sanitization** - Comprehensive validation pipeline
+
+### 🎨 **Beautiful Glassmorphic UI**
+
+- 🌓 **Dark/Light Mode** - Elegant theme switching
+- 📱 **Fully Responsive** - Works on desktop, tablet, and mobile
+- ⚡ **Real-Time Streaming** - See results as they arrive (SSE)
+- 🎭 **Smooth Animations** - Professional glassmorphic design
+- 📋 **SQL Transparency** - View generated queries
+
+### 🌍 **Multi-Provider LLM Support**
+
+```python
+# Choose your AI provider
+LLM_PROVIDER=openai    # GPT-4, GPT-3.5-turbo
+LLM_PROVIDER=gemini    # Gemini 1.5 Pro/Flash
+LLM_PROVIDER=groq      # Llama 3.1 (Ultra-fast)
+LLM_PROVIDER=mock      # Offline testing
 ```
 
-### The 7-Step Process
-
-1. **User Asks Question**: Plain-English query (e.g. *"Top 5 products by revenue"* or *"Show me the ER diagram"*).
-2. **Conversation Context**: `ConversationManager` pulls session memory for follow-up support (*"now show monthly trend for these"*).
-3. **Schema Discovery (`get_schema`)**: Agent inspects tables, column types, foreign keys, and sample data.
-4. **SQL Generation & Guardrails (`execute_query`)**: LLM constructs SQL; `guardrails.py` uses `sqlparse` token validation to enforce read-only `SELECT` execution and block multi-statement injection.
-5. **Dynamic Visualization (`generate_chart`)**: Automatically selects the optimal chart (Bar, Line, Pie, Scatter) based on data shape and intent.
-6. **System Diagramming (`generate_flowchart`)**: Generates Mermaid.js ER diagrams or process flowcharts for architecture queries.
-7. **Executive Insights (`explain_data`)**: Computes summary statistics and formats plain-English executive takeaways, streamed directly to the UI.
-
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
-### Prerequisites
-- Python 3.10+
-- An OpenAI or Gemini API key
+### 📋 Prerequisites
 
-### 1. Clone & Configure
+- **Python 3.10+**
+- **API Key** from [OpenAI](https://platform.openai.com/), [Google AI](https://ai.google.dev/), or [Groq](https://console.groq.com/)
+
+### ⚡ Installation (5 Minutes)
 
 ```bash
+# 1️⃣ Clone the repository
+git clone https://github.com/HEMANTH2208/DataVue-AI.git
+cd DataVue-AI
+
+# 2️⃣ Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# 3️⃣ Install dependencies
+pip install -r requirements.txt
+
+# 4️⃣ Configure environment
 cp .env.example .env
 # Edit .env and add your API key:
 # LLM_PROVIDER=openai
 # OPENAI_API_KEY=sk-...
 ```
 
-### 2. Install Dependencies
+### 🎯 Run the Application
+
+#### Option 1: Python (Development)
 
 ```bash
-pip install -r requirements.txt
-```
-
-### 3. Seed the Database
-
-```bash
+# Seed the demo database
 python -m src.database.seed_databases
-```
 
-### 4. Launch the Server
-
-```bash
+# Start the server
 uvicorn src.main:app --reload --port 8000
 ```
 
-Open http://localhost:8000 in your browser.
-
-### 5. Using Docker (Recommended for Demo)
+#### Option 2: Docker (Production)
 
 ```bash
+# One-command deployment
 docker-compose up --build
 ```
 
----
+### 🌐 Access the Application
 
-## Tool Specification Table (Problem Statement §4.2)
-
-| Tool Name | Class Name | Purpose | Parameters | Return Shape |
-|:---|:---|:---|:---|:---|
-| `get_schema` | `SchemaDiscoveryTool` | Inspect database tables, columns, keys, and sample rows | `table_name?: str` | `{table: {columns, foreign_keys, sample_rows, row_count}}` |
-| `execute_query` | `ExecuteQueryTool` | Execute a validated SQL SELECT query against the database | `sql: str` | `{columns: list, rows: list[dict], row_count: int}` |
-| `generate_chart` | `VisualizeDataTool` | Automatically select chart type and generate Plotly spec | `columns: list, rows: list, query_intent?: str` | `{chart_type, plotly_spec: dict}` |
-| `generate_flowchart` | `SystemDiagramTool` | Generate Mermaid ER diagrams or process flowcharts | `diagram_type: "er"\|"flowchart"` | `{diagram_type, mermaid_markup: str}` |
-| `explain_data` | `ExplainDataTool` | Compute statistics and generate plain-English executive summary | `columns: list, rows: list, query_intent?: str` | `{statistics: dict, explanation: str}` |
-
-### Chart Selection Logic (`select_chart_type`)
-
-> ⚠️ Implementation note: `visualizer.py::select_chart_type()` must implement these exact thresholds before demo day — this table is the source of truth the code should be tested against.
-
-| Data Shape | Intent Keywords | Chart Type |
-|:---|:---|:---|
-| Categorical + Numeric (≤15 rows) | top, best, compare, ranking | **Bar** |
-| Categorical + Numeric (>15 rows) | — | **Horizontal Bar** |
-| Date/Time + Numeric | trend, over time, monthly, growth | **Line** |
-| Categorical + Numeric (≤8 rows) | distribution, proportion, % | **Pie** |
-| Two Numeric columns | correlation, vs, scatter | **Scatter** |
-
----
-
-## Project Structure
+Open your browser and navigate to:
 
 ```
-LLMSQL/
-├── public/                       # Frontend assets (CDN-independent)
-│   ├── index.html                # Dashboard UI
-│   ├── style.css                 # Glassmorphic design system
-│   ├── app.js                    # SSE streaming, Plotly/Mermaid client
-│   └── vendor/
-│       ├── plotly.min.js         # Bundled Plotly JS (offline-safe)
-│       └── mermaid.min.js        # Bundled Mermaid JS (offline-safe)
-├── src/
-│   ├── main.py                   # FastAPI server (REST + SSE endpoints)
-│   ├── config.py                 # pydantic-settings env config
-│   ├── tools/
-│   │   ├── base.py               # Abstract Tool + ToolResult
-│   │   ├── schema_discovery.py   # SchemaDiscoveryTool (get_schema)
-│   │   ├── query_executor.py     # ExecuteQueryTool (execute_query)
-│   │   ├── visualizer.py         # VisualizeDataTool (generate_chart)
-│   │   ├── diagrammer.py         # SystemDiagramTool (generate_flowchart)
-│   │   └── insight_explainer.py  # ExplainDataTool (explain_data)
-│   ├── database/
-│   │   ├── guardrails.py         # sqlparse token-based SQL validation
-│   │   ├── db_manager.py         # SQLite connection & schema manager
-│   │   └── seed_databases.py     # Ecommerce DB seed script
-│   ├── agent/
-│   │   ├── agent_controller.py   # Agentic tool-calling loop + SSE
-│   │   └── conversation.py       # Multi-turn conversation memory
-│   └── services/
-│       └── llm_service.py        # OpenAI / Gemini / Mock providers
-├── tests/
-│   ├── test_guardrails.py        # SQL guardrail unit tests
-│   └── test_visualizer.py        # Chart selection unit tests
-├── data/                          # SQLite databases (auto-created)
-├── .env.example                   # Environment variable template
-├── Dockerfile                     # Docker build spec
-├── docker-compose.yml              # One-command container launch
-└── requirements.txt                # Python dependencies
+http://localhost:8000
+```
+
+**Two Agent Endpoints:**
+- **Classic:** `/api/query/stream`
+- **Intelligent:** `/api/query/intelligent/stream` ⭐
+
+---
+
+## 🎯 Try It Now
+
+### 💬 Example Queries
+
+<table>
+<tr>
+<td width="50%">
+
+#### 📊 **Analytics Queries**
+```
+"What are the top 5 products by revenue?"
+"Show monthly sales trend for 2025"
+"Which category has the highest revenue?"
+"What's the average order value per category?"
+"Show order distribution by payment method"
+```
+
+</td>
+<td width="50%">
+
+#### 🔍 **Multi-Part Analytical Questions**
+```
+"Which category generates the highest revenue, 
+ and what are the top 3 products in that category?"
+
+"Which customer spent the most, 
+ and what products did they purchase?"
+
+"Which month had highest sales, 
+ and what were the top categories?"
+```
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+#### 🗺️ **System & Architecture**
+```
+"Show me the ER diagram of the database"
+"Generate the DataMind AI workflow diagram"
+"Explain the database schema"
+"What tables are available?"
+```
+
+</td>
+<td width="50%">
+
+#### 💬 **Follow-Up Conversations**
+```
+User: "Top 5 products by revenue"
+AI: [Shows results]
+User: "Now show their monthly trends"
+AI: [Uses context from previous query]
+```
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🏗️ Architecture
+
+### 🔄 Agentic Workflow
+
+```mermaid
+flowchart TD
+    User([👤 Natural Language Question]) --> Memory[💾 Conversation Context]
+    Memory --> Agent[🤖 DataMind AI Agent]
+
+    subgraph Tools[🛠️ Intelligent Tool Selection]
+        Agent -->|Schema Inquiry| T1[🔍 get_schema]
+        Agent -->|Data Query| T2[⚡ execute_query]
+        Agent -->|Architecture| T3[🗺️ generate_flowchart]
+        Agent -->|Visualization| T4[📊 generate_chart]
+        Agent -->|Insights| T5[💡 explain_data]
+    end
+
+    T1 --> DB[(🗄️ SQLite Database)]
+    T2 --> DB
+    DB --> Guard[🛡️ SQL Guardrails]
+    Guard --> Results[✅ Validated Results]
+    Results --> T4
+    Results --> T5
+    T3 --> UI
+    T4 --> UI([🌐 Glassmorphic UI])
+    T5 --> UI
+```
+
+### 📦 Project Structure
+
+```
+DataMind-AI/
+├── 🎨 public/                    # Frontend (Glassmorphic UI)
+│   ├── index.html               # Main dashboard
+│   ├── style.css                # Design system
+│   ├── app.js                   # SSE client + Plotly/Mermaid
+│   └── vendor/                  # Offline-safe JS bundles
+│
+├── ⚙️ src/
+│   ├── main.py                  # FastAPI server (REST + SSE)
+│   ├── config.py                # Environment configuration
+│   │
+│   ├── 🤖 agent/                # Intelligence Layer
+│   │   ├── intelligent_agent.py      # Production-quality agent ⭐
+│   │   ├── agent_controller.py       # Classic agent
+│   │   ├── question_analyzer.py      # Deep question understanding
+│   │   ├── query_planner.py          # Multi-step reasoning
+│   │   ├── result_validator.py       # Result validation
+│   │   ├── quality_gate.py           # Final quality checks
+│   │   └── conversation.py           # Multi-turn memory
+│   │
+│   ├── 🛠️ tools/                # Tool Registry
+│   │   ├── base.py                   # Abstract tool interface
+│   │   ├── schema_discovery.py       # 🔍 Schema inspection
+│   │   ├── query_executor.py         # ⚡ SQL execution
+│   │   ├── visualizer.py             # 📊 Chart generation
+│   │   ├── diagrammer.py             # 🗺️ ER/flowchart diagrams
+│   │   └── insight_explainer.py      # 💡 Business insights
+│   │
+│   ├── 🗄️ database/             # Data Layer
+│   │   ├── db_manager.py             # SQLite connection
+│   │   ├── guardrails.py             # SQL validation & security
+│   │   └── seed_databases.py         # Demo data seeder
+│   │
+│   └── 🌐 services/             # External Services
+│       └── llm_service.py            # Multi-provider LLM client
+│
+├── 🧪 tests/                    # Test Suite
+│   ├── test_guardrails.py            # Security tests
+│   ├── test_visualizer.py            # Chart logic tests
+│   └── test_intelligent_agent.py     # Agent integration tests
+│
+├── 📚 Documentation/
+│   ├── QUICK_START.md                # Getting started guide
+│   ├── INTELLIGENT_AGENT_UPGRADE.md  # Intelligent agent docs
+│   ├── PRODUCTION_ENHANCEMENTS_COMPLETE.md
+│   └── CRITICAL_MULTI_PART_RULE_IMPLEMENTED.md
+│
+├── 🐳 Deployment/
+│   ├── Dockerfile                    # Container image
+│   ├── docker-compose.yml            # One-command deploy
+│   └── requirements.txt              # Python dependencies
+│
+└── 📊 data/                     # SQLite databases (auto-created)
 ```
 
 ---
 
-## Example Queries
+## 🎓 Intelligent Agent Deep Dive
 
-- *"What are the top 5 best-selling products by total revenue?"*
-- *"Show monthly order count trend throughout 2025"*
-- *"Which product categories have the highest average order value?"*
-- *"Show me the ER diagram of the ecommerce database"*
-- *"What is the distribution of orders by payment method?"*
-- *"Show the LLMSQL agent workflow diagram"*
+### 🧠 The UNDERSTAND → PLAN → EXECUTE → VALIDATE Pipeline
+
+The **Intelligent Agent** is a production-quality system that ensures **100% reliable answers** to analytical questions.
+
+#### 1️⃣ **UNDERSTAND Phase**
+```python
+# Deep semantic analysis of the question
+analysis = {
+    "question_type": "multi_step",
+    "entities": ["category", "product"],
+    "metrics": ["revenue"],
+    "requirements": [
+        "Find highest revenue category",
+        "Find top 3 products in that category"
+    ],
+    "dependencies": "Stage 2 depends on Stage 1 result"
+}
+```
+
+#### 2️⃣ **PLAN Phase**
+```python
+# Sequential execution plan with validation rules
+plan = {
+    "Stage 1": "Query ALL categories by revenue",
+    "Stage 2": "Extract highest category_id from Stage 1",
+    "Stage 3": "Query products WHERE category_id = <validated_value>",
+    "Stage 4": "Visualize category comparison",
+    "Stage 5": "Visualize top 3 products",
+    "Stage 6": "Generate complete explanation"
+}
+```
+
+#### 3️⃣ **EXECUTE Phase**
+```python
+# Execute each stage with dependencies
+for stage in plan:
+    result = execute_stage(stage)
+    validate_result(result, stage.validation_rules)
+    if not validated:
+        correct_and_retry()
+    accumulated_results[stage.id] = result
+```
+
+#### 4️⃣ **VALIDATE Phase**
+```python
+# CRITICAL: Verify ALL requirements met
+def verify_all_requirements_met():
+    if not all_stages_completed():
+        return False
+    if any_stage_returned_zero_rows():
+        return False
+    if any_extraction_failed():
+        return False
+    return True  # ALL CHECKS PASSED
+```
+
+### 🛡️ **Critical Multi-Part Question Rule**
+
+**NEVER generate partial answers!**
+
+✅ **Correct Behavior:**
+```
+Question: "Which category has highest revenue, and top 3 products?"
+
+Stage 1: Query ALL categories → Returns all with revenue
+Stage 2: Extract highest → category_id=1, name="Electronics"
+Stage 3: Query products WHERE category_id=1 → Returns 3 products
+Verify: All stages succeeded? YES
+
+Answer: "Electronics generates the highest revenue at ₹225,122.08.
+
+Top 3 products in Electronics:
+1. Smart Watch Pro: ₹74,997.00
+2. Noise Cancelling Earbuds: ₹38,547.43
+3. Mechanical Keyboard: ₹36,007.23"
+```
+
+❌ **Prevented Behavior:**
+```
+# NEVER do this:
+Answer: "Electronics has the highest revenue at ₹225,122.08."
+[Missing: product information - PARTIAL ANSWER]
+
+# Or this:
+SQL: SELECT * FROM products WHERE category_id = 1  -- HARDCODED!
+[Should use actual value from Stage 1]
+```
+
+See [CRITICAL_MULTI_PART_RULE_IMPLEMENTED.md](CRITICAL_MULTI_PART_RULE_IMPLEMENTED.md) for details.
 
 ---
 
-## Day 7 Demo Video Script (3–5 min)
+## 📊 Chart Selection Intelligence
 
-1. **Introduction** (30s) — Show the UI, briefly explain LLMSQL and the agentic tool-calling pattern.
-2. **Use Case 1: Sales Analytics** (60s) — Ask "Top 5 best-selling products by revenue" → show SQL transparency panel + bar chart + executive summary.
-3. **Use Case 2: ER Diagram** (45s) — Ask "Show me the ER diagram of the database" → show Mermaid ER diagram rendering.
-4. **Use Case 3: Process Flowchart** (45s) — Ask "Show me the LLMSQL agent workflow" → show Mermaid flowchart.
-5. **Multi-Turn Follow-up** (45s) — "Now show the trend for these categories" → demonstrate conversation context retention.
-6. **Architecture Close** (30s) — Expand the tool trace drawer, walk through the tool execution sequence.
+DataMind AI automatically selects the optimal visualization:
+
+| Data Pattern | Intent Keywords | Chart Type | Use Case |
+|:-------------|:----------------|:-----------|:---------|
+| **Categorical + Numeric** (≤15 rows) | top, best, compare, ranking | **Bar Chart** | Product rankings, category comparison |
+| **Categorical + Numeric** (>15 rows) | — | **Horizontal Bar** | Long category lists |
+| **Date/Time + Numeric** | trend, over time, monthly, growth | **Line Chart** | Sales trends, time-series analysis |
+| **Categorical + Numeric** (≤8 rows) | distribution, proportion, share | **Pie Chart** | Market share, payment methods |
+| **Two Numeric Columns** | correlation, relationship, vs | **Scatter Plot** | Price vs. sales correlation |
 
 ---
 
-## License
+## 🔐 Security & Guardrails
 
-MIT
+### SQL Injection Protection
+
+```python
+# ✅ Allowed: Safe SELECT queries
+"SELECT name, price FROM products WHERE category_id = 1"
+
+# ❌ Blocked: Multi-statement injection
+"SELECT * FROM users; DROP TABLE users;--"
+
+# ❌ Blocked: Write operations
+"DELETE FROM products WHERE id = 1"
+"UPDATE prices SET price = 0"
+
+# ❌ Blocked: Schema manipulation
+"CREATE TABLE malicious_table"
+"ALTER TABLE users ADD COLUMN admin BOOLEAN"
+```
+
+### Validation Pipeline
+
+1. **Token-based parsing** using `sqlparse`
+2. **Statement type verification** (SELECT only)
+3. **Multi-statement detection** (reject semicolons)
+4. **Keyword blacklist** (DROP, DELETE, UPDATE, etc.)
+5. **Result validation** against expected schema
+
+---
+
+## 🌍 Environment Variables
+
+Create a `.env` file:
+
+```bash
+# LLM Provider Configuration
+LLM_PROVIDER=openai              # openai | gemini | groq | mock
+
+# OpenAI Configuration
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-4o              # gpt-4o | gpt-4-turbo | gpt-3.5-turbo
+
+# Google Gemini Configuration
+GEMINI_API_KEY=...
+GEMINI_MODEL=gemini-1.5-flash    # gemini-1.5-pro | gemini-1.5-flash
+
+# Groq Configuration (Llama 3.1)
+GROQ_API_KEY=...
+GROQ_MODEL=llama-3.1-70b-versatile
+
+# Database Configuration
+DEFAULT_DB_PATH=data/ecommerce.db
+
+# Server Configuration
+HOST=0.0.0.0
+PORT=8000
+```
+
+---
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+pytest tests/ -v
+
+# Test SQL guardrails
+pytest tests/test_guardrails.py -v
+
+# Test chart selection logic
+pytest tests/test_visualizer.py -v
+
+# Test intelligent agent
+python test_intelligent_agent.py
+
+# Test multi-part question rule
+python test_multi_part_rule.py
+```
+
+---
+
+## 📚 Documentation
+
+- 📖 [Quick Start Guide](QUICK_START.md) - Get up and running in 5 minutes
+- 🤖 [Intelligent Agent Documentation](INTELLIGENT_AGENT_UPGRADE.md) - Deep dive into the agent architecture
+- 🛡️ [Multi-Part Question Rule](CRITICAL_MULTI_PART_RULE_IMPLEMENTED.md) - How partial answers are prevented
+- ⚡ [Production Enhancements](PRODUCTION_ENHANCEMENTS_COMPLETE.md) - Quality improvements and validation
+- 📋 [Implementation Summary](IMPLEMENTATION_SUMMARY.md) - Complete feature overview
+
+---
+
+## 🎥 Demo Video Script (3-5 Minutes)
+
+### 1️⃣ **Introduction** (30s)
+- Show the glassmorphic UI
+- Explain the agentic tool-calling pattern
+- Highlight dual agent architecture
+
+### 2️⃣ **Use Case: Sales Analytics** (60s)
+- Ask: *"What are the top 5 best-selling products by total revenue?"*
+- Show: SQL panel → Bar chart → Executive summary
+- Demonstrate: Real-time streaming
+
+### 3️⃣ **Use Case: ER Diagram** (45s)
+- Ask: *"Show me the ER diagram of the database"*
+- Show: Mermaid rendering with relationships
+
+### 4️⃣ **Use Case: Multi-Part Question** (60s)
+- Ask: *"Which category has highest revenue, and what are the top 3 products?"*
+- Show: Multi-stage execution → Two charts → Complete answer
+- Highlight: No partial answers, validated results
+
+### 5️⃣ **Multi-Turn Follow-up** (45s)
+- Ask: *"Now show the monthly trend for these products"*
+- Show: Conversation context retention
+
+### 6️⃣ **Architecture Walkthrough** (30s)
+- Expand tool trace drawer
+- Walk through the execution sequence
+- Show validation checkpoints
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how you can help:
+
+1. 🐛 **Report Bugs** - Open an issue with reproduction steps
+2. 💡 **Suggest Features** - Share your ideas for improvements
+3. 🔧 **Submit Pull Requests** - Follow our coding standards
+4. 📖 **Improve Documentation** - Help others understand the project
+
+### Development Setup
+
+```bash
+# Fork and clone the repository
+git clone https://github.com/YOUR_USERNAME/DataVue-AI.git
+
+# Create a feature branch
+git checkout -b feature/amazing-feature
+
+# Make your changes and test
+pytest tests/ -v
+
+# Commit and push
+git commit -m "Add amazing feature"
+git push origin feature/amazing-feature
+
+# Open a Pull Request
+```
+
+---
+
+## 🗺️ Roadmap
+
+### 🎯 Current Version (v1.0)
+- ✅ Dual agent architecture
+- ✅ 5 intelligent tools
+- ✅ Multi-provider LLM support
+- ✅ SQL injection protection
+- ✅ Glassmorphic UI
+- ✅ Real-time streaming
+
+### 🚀 Upcoming Features (v2.0)
+- 🔄 **Multi-Database Support** - PostgreSQL, MySQL, MongoDB
+- 📊 **Custom Dashboards** - Save and share visualizations
+- 🔗 **API Integrations** - Connect external data sources
+- 🤖 **Advanced Analytics** - Predictive modeling, anomaly detection
+- 👥 **Collaboration** - Team workspaces and sharing
+- 🌐 **Cloud Deployment** - One-click cloud hosting
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 💖 Acknowledgments
+
+- **FastAPI** - Modern web framework
+- **Plotly** - Interactive visualizations
+- **Mermaid.js** - Beautiful diagrams
+- **OpenAI / Google / Groq** - LLM providers
+- **SQLite** - Lightweight database engine
+
+---
+
+## 📞 Support & Contact
+
+- 🐛 **Issues:** [GitHub Issues](https://github.com/HEMANTH2208/DataVue-AI/issues)
+- 💬 **Discussions:** [GitHub Discussions](https://github.com/HEMANTH2208/DataVue-AI/discussions)
+- 📧 **Email:** [your-email@example.com]
+
+---
+
+<div align="center">
+
+### ⭐ Star this repository if you find it useful!
+
+**Made with ❤️ by the DataMind AI Team**
+
+[⬆ Back to Top](#-datamind-ai)
+
+</div>
