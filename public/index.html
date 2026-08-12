@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="DataMind AI — Ask questions in plain English, get SQL queries, interactive charts, and AI insights from your database instantly." />
+  <title>DataMind AI — Agentic AI Database Assistant</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Local Vendor Assets (CDN-Independent) -->
+  <script src="/vendor/plotly.min.js"></script>
+  <script src="/vendor/mermaid.min.js"></script>
+
+  <link rel="stylesheet" href="/public/style.css?v=3" />
+</head>
+<body>
+  <!-- ==================== SIDEBAR ==================== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon">🧠</div>
+        <span class="logo-text">DataMind AI</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle" title="Toggle sidebar">‹</button>
+    </div>
+
+    <!-- Schema Browser -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-header">
+        <span class="sidebar-section-icon">🗄️</span>
+        <span>Database Schema</span>
+        <button class="schema-refresh-btn" id="schemaRefresh" title="Refresh schema">↻</button>
+      </div>
+      <div class="schema-search-container">
+        <span class="schema-search-icon">🔍</span>
+        <input type="text" id="schemaSearch" class="schema-search-input" placeholder="Search tables or columns..." autocomplete="off" />
+      </div>
+      <div class="schema-tree" id="schemaTree">
+        <div class="schema-loading">Loading schema...</div>
+      </div>
+    </div>
+
+    <!-- Suggested Queries -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-header">
+        <span class="sidebar-section-icon">💡</span>
+        <span>Suggested Queries</span>
+      </div>
+      <div class="suggestions-list">
+        <button class="suggestion-chip" data-query="What are the top 5 best-selling products by revenue?">
+          Top 5 products by revenue
+        </button>
+        <button class="suggestion-chip" data-query="Show monthly revenue trend for 2025">
+          Monthly revenue trend
+        </button>
+        <button class="suggestion-chip" data-query="Which product categories have the highest average order value?">
+          Category average order value
+        </button>
+        <button class="suggestion-chip" data-query="Show me the ER diagram of the database">
+          ER diagram of the database
+        </button>
+        <button class="suggestion-chip" data-query="How many orders were placed each month in 2025?">
+          Orders per month in 2025
+        </button>
+        <button class="suggestion-chip" data-query="Show the distribution of orders by payment method">
+          Orders by payment method
+        </button>
+        <button class="suggestion-chip" data-query="What is the average product rating by category?">
+          Avg rating by category
+        </button>
+        <button class="suggestion-chip" data-query="Show me the DataMind AI agent workflow diagram">
+          DataMind AI agent flowchart
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ==================== MAIN AREA ==================== -->
+  <main class="main-content" id="mainContent">
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-open-btn" id="sidebarOpenBtn" title="Open sidebar">☰</button>
+        <h1 class="page-title">DataMind <span class="badge-ai">AI</span></h1>
+      </div>
+      <div class="topbar-right">
+        <select class="model-select" id="modelSelect" title="LLM Provider Model Selection">
+          <option value="gemini">Google Gemini</option>
+          <option value="openai">OpenAI GPT-4o</option>
+          <option value="groq">Groq Llama 3.1 8B</option>
+          <option value="mock">Offline Mock</option>
+        </select>
+        <div class="provider-badge" id="providerBadge">
+          <span class="provider-dot"></span>
+          <span id="providerLabel">Loading...</span>
+        </div>
+        <button class="clear-chat-btn" id="clearChatBtn" title="Clear conversation">Clear</button>
+      </div>
+    </header>
+
+    <!-- Chat Messages -->
+    <div class="chat-container" id="chatContainer">
+      <!-- Welcome State -->
+      <div class="welcome-state" id="welcomeState">
+        <div class="welcome-icon">🧠</div>
+        <h2 class="welcome-title">Welcome to DataMind AI</h2>
+        <p class="welcome-subtitle">Ask any question about your data in plain English.<br/>I'll query the database, generate charts, and explain the results.</p>
+        <div class="welcome-chips">
+          <button class="welcome-chip" data-query="What are the top 5 best-selling products by revenue?">📊 Top products by revenue</button>
+          <button class="welcome-chip" data-query="Show monthly revenue trend for 2025">📈 Monthly revenue trend</button>
+          <button class="welcome-chip" data-query="Show me the ER diagram of the database">🗂️ ER diagram</button>
+          <button class="welcome-chip" data-query="Show the distribution of orders by payment method">🥧 Payment method breakdown</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="input-area">
+      <div class="input-wrapper">
+        <textarea
+          class="chat-input"
+          id="chatInput"
+          placeholder="Ask anything about your data... (e.g. 'What were our top 5 products last month?')"
+          rows="1"
+          maxlength="2000"
+        ></textarea>
+        <select class="voice-lang-select" id="voiceLangSelect" title="Voice Recognition Language">
+          <option value="en-US">English</option>
+          <option value="ta-IN">Tamil (தமிழ்)</option>
+          <option value="hi-IN">Hindi (हिन्दी)</option>
+        </select>
+        <button class="voice-btn" id="voiceBtn" title="Start/Stop voice recording">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="mic-svg">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v1a7 7 0 0 1-14 0v-1M12 19v4M8 23h8"/>
+          </svg>
+        </button>
+        <button class="send-btn" id="sendBtn" title="Send">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z" />
+          </svg>
+        </button>
+      </div>
+      <div class="input-footer">
+        <span class="input-hint">Press Enter to send, Shift+Enter for new line</span>
+        <span class="session-id" id="sessionIdLabel"></span>
+      </div>
+    </div>
+  </main>
+
+  <!-- ==================== TEMPLATES ==================== -->
+
+  <!-- Message template: user -->
+  <template id="userMsgTemplate">
+    <div class="message message-user">
+      <div class="message-avatar user-avatar">You</div>
+      <div class="message-body">
+        <div class="message-text"></div>
+      </div>
+    </div>
+  </template>
+
+  <!-- Message template: assistant -->
+  <template id="assistantMsgTemplate">
+    <div class="message message-assistant">
+      <div class="message-avatar agent-avatar">🧠</div>
+      <div class="message-body">
+        <!-- Tool Trace Badge Row -->
+        <div class="tool-trace-row"></div>
+        <!-- SQL Panel -->
+        <details class="sql-panel" style="display:none">
+          <summary class="sql-panel-summary">
+            <span class="sql-icon">📋</span> Generated SQL
+            <button class="copy-sql-btn">Copy</button>
+          </summary>
+          <pre class="sql-code"></pre>
+        </details>
+        <!-- Chart Panel -->
+        <div class="chart-panel" style="display:none">
+          <div class="chart-container"></div>
+        </div>
+        <!-- Diagram Panel -->
+        <div class="diagram-panel" style="display:none">
+          <div class="diagram-container"></div>
+        </div>
+        <!-- Answer Text -->
+        <div class="message-text answer-text"></div>
+        <!-- Insights Panel -->
+        <div class="insights-panel" style="display:none">
+          <div class="insights-header">📊 Key Insights</div>
+          <div class="insights-content"></div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- Thinking indicator template -->
+  <template id="thinkingTemplate">
+    <div class="message message-assistant thinking-msg" id="thinkingMsg">
+      <div class="message-avatar agent-avatar">🧠</div>
+      <div class="message-body">
+        <div class="thinking-indicator">
+          <div class="thinking-status" id="thinkingStatus">Thinking...</div>
+          <div class="thinking-dots">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script src="/public/app.js"></script>
+</body>
+</html>

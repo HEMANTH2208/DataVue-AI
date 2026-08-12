@@ -1,0 +1,23 @@
+# LLMSQL - Agentic Database & Visualization Assistant
+# Core Dependencies
+
+# Web Server
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+
+# LLM Providers
+openai>=1.30.0
+google-genai>=1.0.0
+
+# Database
+sqlparse>=0.5.0
+
+# Data Processing
+pandas>=2.0.0
+
+# Configuration
+pydantic-settings>=2.0.0
+python-dotenv>=1.0.0
+
+# SSE Streaming
+sse-starlette>=1.6.0
