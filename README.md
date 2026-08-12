@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🧠 DataMind AI
+# 🧠 DataVue AI
 
 ### *Transform Natural Language into Database Insights*
 
@@ -20,9 +20,9 @@
 
 ---
 
-## 🌟 What is DataMind AI?
+## 🌟 What is DataVue AI?
 
-**DataMind AI** is an intelligent database assistant that bridges the gap between natural language and data analytics. Built with cutting-edge agentic AI, it enables **anyone** to query databases, generate visualizations, and extract insights—no SQL knowledge required.
+**DataVue AI** is an intelligent database assistant that bridges the gap between natural language and data analytics. Built with cutting-edge agentic AI, it enables **anyone** to query databases, generate visualizations, and extract insights—no SQL knowledge required.
 
 ### 🎯 Perfect For
 
@@ -231,7 +231,7 @@ AI: [Uses context from previous query]
 ```mermaid
 flowchart TD
     User([👤 Natural Language Question]) --> Memory[💾 Conversation Context]
-    Memory --> Agent[🤖 DataMind AI Agent]
+    Memory --> Agent[🤖 DataVue AI Agent]
 
     subgraph Tools[🛠️ Intelligent Tool Selection]
         Agent -->|Schema Inquiry| T1[🔍 get_schema]
@@ -255,7 +255,7 @@ flowchart TD
 ### 📦 Project Structure
 
 ```
-DataMind-AI/
+DataVue-AI/
 ├── 🎨 public/                    # Frontend (Glassmorphic UI)
 │   ├── index.html               # Main dashboard
 │   ├── style.css                # Design system
@@ -408,7 +408,7 @@ See [CRITICAL_MULTI_PART_RULE_IMPLEMENTED.md](CRITICAL_MULTI_PART_RULE_IMPLEMENT
 
 ## 📊 Chart Selection Intelligence
 
-DataMind AI automatically selects the optimal visualization:
+DataVue AI automatically selects the optimal visualization:
 
 | Data Pattern | Intent Keywords | Chart Type | Use Case |
 |:-------------|:----------------|:-----------|:---------|
@@ -621,8 +621,8 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ### ⭐ Star this repository if you find it useful!
 
-**Made with ❤️ by the DataMind AI Team**
+**Made with ❤️ by the DataVue AI Team**
 
-[⬆ Back to Top](#-datamind-ai)
+[⬆ Back to Top](#-datavue-ai)
 
 </div>
