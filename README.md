@@ -12,7 +12,7 @@
 
 **Ask questions in plain English → Get SQL, Interactive Charts & AI Insights — Instantly**
 
-[🚀 Quick Start](#-quick-start) • [✨ Features](#-key-features) • [🎯 Demo](#-try-it-now) • [📚 Documentation](#-documentation)
+[🚀 Quick Start](#-quick-start) • [✨ Features](#-key-features) • [�️ Architecture](#-architecture) • [📚 Documentation](#-documentation)
 
 <img src="https://img.shields.io/badge/Status-Production%20Ready-success?style=for-the-badge" />
 
@@ -20,7 +20,35 @@
 
 ---
 
-## 🌟 What is DataVue AI?
+## 👥 Project Information
+
+<table>
+<tr>
+<td><strong>� Institution</strong></td>
+<td>Sri Sairam Engineering College</td>
+</tr>
+<tr>
+<td><strong>👨‍💻 Team Name</strong></td>
+<td>Most Wanted</td>
+</tr>
+<tr>
+<td><strong>🚀 Project Name</strong></td>
+<td>DataVue AI</td>
+</tr>
+<tr>
+<td><strong>👥 Team Members</strong></td>
+<td>
+  • Hemanth B<br>
+  • Dinesh Sugumar S<br>
+  • Manish Shriram M<br>
+  • Dev Anand M
+</td>
+</tr>
+</table>
+
+---
+
+## �🌟 What is DataVue AI?
 
 **DataVue AI** is an intelligent database assistant that bridges the gap between natural language and data analytics. Built with cutting-edge agentic AI, it enables **anyone** to query databases, generate visualizations, and extract insights—no SQL knowledge required.
 
@@ -66,13 +94,13 @@
 
 ### 🛠️ **5 Powerful Tools**
 
-| Tool | Description | Example |
-|:-----|:------------|:--------|
-| 🔍 **Schema Discovery** | Inspect database structure, relationships, and sample data | *"What tables are in the database?"* |
-| ⚡ **Query Executor** | Execute validated SQL with built-in guardrails | *"Top 5 products by revenue"* |
-| 📊 **Data Visualizer** | Auto-generate Plotly charts (Bar, Line, Pie, Scatter) | *"Show monthly sales trend"* |
-| 🗺️ **System Diagrammer** | Generate ER diagrams and flowcharts | *"Show me the database schema"* |
-| 💡 **Insight Explainer** | Extract key statistics and business insights | *"Explain the revenue distribution"* |
+| Tool | Description | Example Use Case |
+|:-----|:------------|:-----------------|
+| 🔍 **Schema Discovery** | Inspect database structure, relationships, and sample data | Understand database architecture |
+| ⚡ **Query Executor** | Execute validated SQL with built-in guardrails | Retrieve data securely |
+| 📊 **Data Visualizer** | Auto-generate Plotly charts (Bar, Line, Pie, Scatter) | Visualize trends and patterns |
+| 🗺️ **System Diagrammer** | Generate ER diagrams and flowcharts | Document database schema |
+| 💡 **Insight Explainer** | Extract key statistics and business insights | Get actionable intelligence |
 
 ### 🔐 **Enterprise-Grade Security**
 
@@ -159,68 +187,6 @@ http://localhost:8000
 **Two Agent Endpoints:**
 - **Classic:** `/api/query/stream`
 - **Intelligent:** `/api/query/intelligent/stream` ⭐
-
----
-
-## 🎯 Try It Now
-
-### 💬 Example Queries
-
-<table>
-<tr>
-<td width="50%">
-
-#### 📊 **Analytics Queries**
-```
-"What are the top 5 products by revenue?"
-"Show monthly sales trend for 2025"
-"Which category has the highest revenue?"
-"What's the average order value per category?"
-"Show order distribution by payment method"
-```
-
-</td>
-<td width="50%">
-
-#### 🔍 **Multi-Part Analytical Questions**
-```
-"Which category generates the highest revenue, 
- and what are the top 3 products in that category?"
-
-"Which customer spent the most, 
- and what products did they purchase?"
-
-"Which month had highest sales, 
- and what were the top categories?"
-```
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-#### 🗺️ **System & Architecture**
-```
-"Show me the ER diagram of the database"
-"Generate the DataMind AI workflow diagram"
-"Explain the database schema"
-"What tables are available?"
-```
-
-</td>
-<td width="50%">
-
-#### 💬 **Follow-Up Conversations**
-```
-User: "Top 5 products by revenue"
-AI: [Shows results]
-User: "Now show their monthly trends"
-AI: [Uses context from previous query]
-```
-
-</td>
-</tr>
-</table>
 
 ---
 
@@ -511,38 +477,6 @@ python test_multi_part_rule.py
 
 ---
 
-## 🎥 Demo Video Script (3-5 Minutes)
-
-### 1️⃣ **Introduction** (30s)
-- Show the glassmorphic UI
-- Explain the agentic tool-calling pattern
-- Highlight dual agent architecture
-
-### 2️⃣ **Use Case: Sales Analytics** (60s)
-- Ask: *"What are the top 5 best-selling products by total revenue?"*
-- Show: SQL panel → Bar chart → Executive summary
-- Demonstrate: Real-time streaming
-
-### 3️⃣ **Use Case: ER Diagram** (45s)
-- Ask: *"Show me the ER diagram of the database"*
-- Show: Mermaid rendering with relationships
-
-### 4️⃣ **Use Case: Multi-Part Question** (60s)
-- Ask: *"Which category has highest revenue, and what are the top 3 products?"*
-- Show: Multi-stage execution → Two charts → Complete answer
-- Highlight: No partial answers, validated results
-
-### 5️⃣ **Multi-Turn Follow-up** (45s)
-- Ask: *"Now show the monthly trend for these products"*
-- Show: Conversation context retention
-
-### 6️⃣ **Architecture Walkthrough** (30s)
-- Expand tool trace drawer
-- Walk through the execution sequence
-- Show validation checkpoints
-
----
-
 ## 🤝 Contributing
 
 We welcome contributions! Here's how you can help:
@@ -599,7 +533,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ---
 
-## 💖 Acknowledgments
+## � Acknowledgments
 
 - **FastAPI** - Modern web framework
 - **Plotly** - Interactive visualizations
@@ -613,7 +547,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 - 🐛 **Issues:** [GitHub Issues](https://github.com/HEMANTH2208/DataVue-AI/issues)
 - 💬 **Discussions:** [GitHub Discussions](https://github.com/HEMANTH2208/DataVue-AI/discussions)
-- 📧 **Email:** [your-email@example.com]
+- 🏫 **Institution:** Sri Sairam Engineering College
 
 ---
 
@@ -621,7 +555,11 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ### ⭐ Star this repository if you find it useful!
 
-**Made with ❤️ by the DataVue AI Team**
+**Developed by Team Most Wanted**
+
+*Hemanth B • Dinesh Sugumar S • Manish Shriram M • Dev Anand M*
+
+**Sri Sairam Engineering College**
 
 [⬆ Back to Top](#-datavue-ai)
 
