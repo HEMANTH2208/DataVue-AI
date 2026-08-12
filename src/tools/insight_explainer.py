@@ -107,19 +107,14 @@ def _format_explanation(
     parts: list[str] = []
 
     row_count = stats["row_count"]
-    parts.append(f"The query returned **{row_count} results**.")
+    
+    # DO NOT start with generic "The query returned X results" unless it matters
+    # Only mention row count if it's relevant to the question
+    intent_lower = query_intent.lower()
+    if any(kw in intent_lower for kw in ['how many', 'count', 'number of']):
+        parts.append(f"Found **{row_count} results**.")
 
-    # Summarise each numeric column
-    for col, summary in stats.get("numeric_summaries", {}).items():
-        is_money = _is_monetary_column(col)
-        prefix = "₹" if is_money else ""
-        parts.append(
-            f"For **{col}**: total = {prefix}{summary['total']:,.2f}, "
-            f"average = {prefix}{summary['average']:,.2f}, "
-            f"range = {prefix}{summary['min']:,.2f} – {prefix}{summary['max']:,.2f}."
-        )
-
-    # Top value insights
+    # Generate question-specific insights, not generic statistics
     for col, top_info in stats.get("top_values", {}).items():
         leader = top_info.get("leader", {})
         runner = top_info.get("runner_up", {})
@@ -134,20 +129,69 @@ def _format_explanation(
             except (ValueError, TypeError):
                 val_str = str(leader["value"])
 
-            insight = f"**{leader['label']}** leads in {col} with **{val_str}**"
-            if share:
-                insight += f" ({share}% of total)"
-            insight += "."
-            parts.append(insight)
+            # Generate contextual insight based on question
+            if any(kw in intent_lower for kw in ['highest', 'top', 'best', 'most']):
+                insight = f"**{leader['label']}** is the highest"
+                if col != 'value':
+                    insight += f" in {col}"
+                insight += f" with **{val_str}**"
+                if share and share > 25:  # Only mention share if significant
+                    insight += f", representing {share}% of the total"
+                insight += "."
+                parts.append(insight)
+            elif any(kw in intent_lower for kw in ['lowest', 'bottom', 'worst', 'least']):
+                insight = f"**{leader['label']}** is the lowest"
+                if col != 'value':
+                    insight += f" in {col}"
+                insight += f" at **{val_str}**."
+                parts.append(insight)
+            else:
+                # Generic case - still make it specific
+                insight = f"**{leader['label']}** leads with **{val_str}**"
+                if share:
+                    insight += f" ({share}% of total)"
+                insight += "."
+                parts.append(insight)
 
+        # Only compare with runner-up if it adds meaningful context
         if runner.get("label") and leader.get("value") and runner.get("value"):
             try:
                 diff = float(leader["value"]) - float(runner["value"])
-                parts.append(
-                    f"It is ahead of {runner['label']} by {prefix}{diff:,.2f}."
-                )
-            except (ValueError, TypeError):
+                diff_pct = (diff / float(runner["value"])) * 100 if float(runner["value"]) != 0 else 0
+                
+                # Only mention if the difference is meaningful
+                if diff_pct > 10:  # More than 10% difference
+                    parts.append(
+                        f"This is {diff_pct:.1f}% higher than {runner['label']} ({prefix}{float(runner['value']):,.2f})."
+                    )
+            except (ValueError, TypeError, ZeroDivisionError):
                 pass
+
+    # Only report aggregates if relevant to the question
+    if any(kw in intent_lower for kw in ['total', 'sum', 'all', 'overall']):
+        for col, summary in stats.get("numeric_summaries", {}).items():
+            is_money = _is_monetary_column(col)
+            prefix = "₹" if is_money else ""
+            parts.append(
+                f"Total {col}: {prefix}{summary['total']:,.2f}."
+            )
+            break  # Only report the primary metric
+    
+    if any(kw in intent_lower for kw in ['average', 'avg', 'mean', 'typical']):
+        for col, summary in stats.get("numeric_summaries", {}).items():
+            is_money = _is_monetary_column(col)
+            prefix = "₹" if is_money else ""
+            parts.append(
+                f"Average {col}: {prefix}{summary['average']:,.2f}."
+            )
+            break  # Only report the primary metric
+
+    # If no specific insights were generated, provide minimal context-appropriate answer
+    if not parts:
+        # Strict guard: if there are no rows to analyze, return nothing useful
+        if row_count == 0:
+            return ""
+        parts.append(f"Analysis returned {row_count} result{'s' if row_count > 1 else ''}.")
 
     return "\n\n".join(parts)
 
@@ -200,6 +244,13 @@ class ExplainInsightsTool(Tool):
             return ToolResult(
                 success=False,
                 error="No data provided for insight generation.",
+            )
+
+        # Strict grounding guard: never generate insights for empty query results
+        if len(rows) == 0:
+            return ToolResult(
+                success=False,
+                error="No matching data was found in the database for this query.",
             )
 
         try:

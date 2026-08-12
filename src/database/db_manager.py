@@ -26,18 +26,29 @@ class DatabaseManager:
         self.db_path = db_path
         self._validate_path()
 
+    @property
+    def active_db_path(self) -> str:
+        """Dynamically resolve the database path for the current session context."""
+        from src.database.resolver import get_active_database_path
+        return get_active_database_path()
+
     # ------------------------------------------------------------------
     # Connection helpers
     # ------------------------------------------------------------------
 
     def _validate_path(self) -> None:
         """Ensure the database file exists."""
-        if not Path(self.db_path).exists():
-            raise FileNotFoundError(f"Database not found: {self.db_path}")
+        if not Path(self.active_db_path).exists():
+            raise FileNotFoundError(f"Database not found: {self.active_db_path}")
 
     def _connect(self) -> sqlite3.Connection:
         """Open a new SQLite connection with row_factory enabled."""
-        conn = sqlite3.connect(self.db_path)
+        db_path = self.active_db_path
+        try:
+            # Connect in read-only mode for safety
+            conn = sqlite3.connect(f"file:{Path(db_path).as_posix()}?mode=ro", uri=True)
+        except Exception:
+            conn = sqlite3.connect(db_path)
         conn.row_factory = sqlite3.Row
         return conn
 
@@ -114,6 +125,11 @@ class DatabaseManager:
         Returns a dict keyed by table name, each containing:
           columns, foreign_keys, sample_rows, row_count
         """
+        from src.database.resolver import get_cached_schema, cache_schema
+        cached = get_cached_schema()
+        if cached is not None:
+            return cached
+
         schema: dict[str, Any] = {}
         tables = self.get_tables()
 
@@ -132,6 +148,7 @@ class DatabaseManager:
         finally:
             conn.close()
 
+        cache_schema(schema)
         return schema
 
     # ------------------------------------------------------------------

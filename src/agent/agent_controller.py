@@ -134,11 +134,30 @@ class AgentController:
             except Exception as exc:
                 print(f"[Translation Error] Failed to translate: {exc}")
 
-        # Build context-enriched system prompt
+        # Build context-enriched system prompt with active database context
         system_prompt = SYSTEM_PROMPT
         context_summary = session.get_context_summary()
         if context_summary:
             system_prompt += f"\n\n## Conversation Context\n{context_summary}"
+
+        # Inject active database identity so the LLM never queries the wrong DB
+        try:
+            from src.database.resolver import get_active_database_path, active_session_id, _session_databases
+            active_path = get_active_database_path(session_id)
+            import os
+            db_source = "default"
+            sid = session_id or active_session_id.get()
+            if sid and sid in _session_databases:
+                db_source = _session_databases[sid].source_type
+            system_prompt += (
+                f"\n\n## Active Database (Current Session)\n"
+                f"- Source: {db_source}\n"
+                f"- Path: {os.path.basename(active_path)}\n"
+                f"\nIMPORTANT: Query ONLY tables that exist in the schema returned by get_schema above."
+                f" NEVER use table or column names not present in that schema."
+            )
+        except Exception as _db_ctx_err:
+            print(f"[DB Context Warning] Could not inject DB context: {_db_ctx_err}")
 
         # Add user message to session
         session.add_message("user", user_message)
@@ -167,7 +186,8 @@ class AgentController:
             try:
                 llm_response: LLMResponse = self._llm.chat(messages, tool_specs)
             except Exception as exc:
-                print(f"[Fallback] LLM provider error: {exc}. Falling back to MockProvider.")
+                import traceback
+                print(f"[Fallback] LLM provider error: {exc}. Stack trace:\n{traceback.format_exc()}")
                 from src.services.llm_service import MockProvider
                 self._llm = MockProvider()
                 llm_response = self._llm.chat(messages, tool_specs)
@@ -232,6 +252,29 @@ class AgentController:
                     "content": result_str,
                 })
 
+        # ── GROUNDING GUARD ──
+        # Strip chart and insights from the response if no real query result exists.
+        # This prevents hallucinated charts from reaching the frontend.
+        query_result = response_payload.get("query_result")
+        has_real_data = (
+            query_result is not None
+            and isinstance(query_result, dict)
+            and query_result.get("row_count", 0) > 0
+        )
+        if not has_real_data:
+            # Suppress any charts or insights generated without real data
+            if response_payload.get("chart") is not None:
+                print("[Grounding Guard] Suppressed chart: no verified query result.")
+                response_payload["chart"] = None
+            if response_payload.get("insights") is not None:
+                print("[Grounding Guard] Suppressed insights: no verified query result.")
+                response_payload["insights"] = None
+            # If the LLM never called execute_query, override the answer
+            if query_result is None and not response_payload["answer"].strip():
+                response_payload["answer"] = (
+                    "The available database data is insufficient to answer this question."
+                )
+
         response_payload["tool_trace"] = response_payload["tool_trace"]
         return response_payload
 
@@ -273,6 +316,25 @@ class AgentController:
         if context_summary:
             system_prompt += f"\n\n## Conversation Context\n{context_summary}"
 
+        # Inject active database identity into the streaming system prompt
+        try:
+            from src.database.resolver import get_active_database_path, active_session_id, _session_databases
+            active_path = get_active_database_path(session_id)
+            import os
+            db_source = "default"
+            sid = session_id or active_session_id.get()
+            if sid and sid in _session_databases:
+                db_source = _session_databases[sid].source_type
+            system_prompt += (
+                f"\n\n## Active Database (Current Session)\n"
+                f"- Source: {db_source}\n"
+                f"- Path: {os.path.basename(active_path)}\n"
+                f"\nIMPORTANT: Query ONLY tables that exist in the schema returned by get_schema above."
+                f" NEVER use table or column names not present in that schema."
+            )
+        except Exception as _db_ctx_err:
+            print(f"[DB Context Warning] Could not inject DB context: {_db_ctx_err}")
+
         session.add_message("user", user_message)
         messages: list[dict[str, Any]] = [
             {"role": "system", "content": system_prompt},
@@ -299,33 +361,24 @@ class AgentController:
                 llm_response = self._llm.chat(messages, tool_specs)
 
             if not llm_response.tool_calls:
-                # Enforce chart & insights autonomously if they were missed!
-                has_chart = any(t["tool"] == "generate_chart" for t in tool_trace)
-                has_insights = any(t["tool"] == "explain_data" for t in tool_trace)
-                
-                if last_query_data:
-                    columns = last_query_data.get("columns", [])
-                    rows = last_query_data.get("rows", [])
-                    
-                    if not has_chart:
-                        print("[Autonomous Visualization] Triggering dynamic chart...")
-                        chart_tool = self._tools.get("generate_chart")
-                        if chart_tool:
-                            c_res = chart_tool.execute(columns=columns, rows=rows, query_intent=user_message)
-                            if c_res.success:
-                                yield {"type": "chart", "data": c_res.data}
-                                
-                    if not has_insights:
-                        print("[Autonomous Insights] Triggering dynamic explain...")
-                        explain_tool = self._tools.get("explain_data")
-                        if explain_tool:
-                            e_res = explain_tool.execute(columns=columns, rows=rows, query_intent=user_message)
-                            if e_res.success:
-                                yield {"type": "insights", "data": e_res.data}
-                                if not llm_response.content:
-                                    llm_response.content = e_res.data.get("explanation", "")
-
+                # ── STRICT GROUNDING: Do NOT autonomously inject charts or insights ──
+                # Charts and insights are ONLY emitted when the LLM explicitly calls those tools
+                # through the tool-calling loop above. If the LLM skipped them, that is a
+                # deliberate or necessary choice — do not override it with autonomous injection.
                 answer = llm_response.content or ""
+                
+                # If LLM produced an answer without ever calling execute_query,
+                # replace it with the insufficiency message to prevent hallucination.
+                query_was_executed = any(t["tool"] == "execute_query" for t in tool_trace)
+                if not query_was_executed and answer.strip():
+                    # Only override if this looks like a database question
+                    db_keywords = ["top", "best", "revenue", "sales", "product", "order",
+                                   "category", "customer", "rating", "payment", "count",
+                                   "average", "total", "distribution", "trend"]
+                    if any(kw in user_message.lower() for kw in db_keywords):
+                        print("[Grounding Guard] LLM answered without execute_query — overriding.")
+                        answer = "The available database data is insufficient to answer this question."
+
                 session.add_message("assistant", answer)
                 
                 # Stream the answer word by word

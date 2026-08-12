@@ -2,6 +2,20 @@
 
 > Ask questions in plain English → get SQL queries, interactive charts, and AI insights from your database — instantly.
 
+## 🎉 NEW: Intelligent Agent Mode
+
+DataMind AI now features an **Intelligent Agent** with:
+- ✅ **Deep Question Understanding** - Analyzes intent before acting
+- ✅ **Multi-Step Analytical Reasoning** - Handles complex nested questions correctly
+- ✅ **Result Validation** - Checks every answer against requirements  
+- ✅ **Automatic Error Correction** - Fixes issues and retries
+- ✅ **Data Grounding** - All explanations validated against actual results
+- ✅ **Multiple Visualizations** - Generates appropriate charts for each analytical component
+
+**Try it at:** `/api/query/intelligent/stream` (original endpoint preserved at `/api/query/stream`)
+
+See [INTELLIGENT_AGENT_UPGRADE.md](INTELLIGENT_AGENT_UPGRADE.md) for details.
+
 ---
 
 ## 💡 What LLMSQL Does (Step-by-Step)

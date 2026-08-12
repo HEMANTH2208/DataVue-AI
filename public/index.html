@@ -27,6 +27,53 @@
       <button class="sidebar-toggle" id="sidebarToggle" title="Toggle sidebar">‹</button>
     </div>
 
+    <!-- Database Connection Panel -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-header">
+        <span class="sidebar-section-icon">🔌</span>
+        <span>Connect Your Database</span>
+      </div>
+      <div class="db-selector-container">
+        <div class="db-options-toggle">
+          <button class="db-toggle-btn active" id="dbToggleDefault">Default DB</button>
+          <button class="db-toggle-btn" id="dbToggleUpload">Upload ZIP</button>
+        </div>
+        
+        <!-- Upload Dropzone -->
+        <div id="dbUploadPanel" class="db-upload-panel" style="display: none;">
+          <div id="dbDropZone" class="db-dropzone">
+            <span class="db-dropzone-icon">📤</span>
+            <span class="db-dropzone-text">Drag & drop database ZIP here or click to browse</span>
+            <input type="file" id="dbFileInput" accept=".zip" style="display: none;" />
+          </div>
+          
+          <!-- Upload/Processing Status -->
+          <div id="dbUploadStatus" class="db-upload-status" style="display: none;">
+            <div class="db-status-row">
+              <span class="db-status-dot" id="dbStatusDot"></span>
+              <span id="dbStatusMessage">Idle</span>
+            </div>
+            <div class="progress-bar-container" id="dbProgressContainer" style="display: none;">
+              <div id="dbProgressBar" class="progress-bar"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Database Info -->
+        <div id="dbInfoPanel" class="db-info-panel">
+          <div class="db-info-header">
+            <span class="db-info-indicator-dot active" id="dbInfoIndicatorDot"></span>
+            <span id="dbInfoName">ecommerce.db</span>
+          </div>
+          <div class="db-info-details">
+            <div><span class="detail-label">Type:</span> <span id="dbInfoType">SQLite</span></div>
+            <div><span class="detail-label">Tables:</span> <span id="dbInfoTables">6</span></div>
+            <div><span class="detail-label">Status:</span> <span id="dbInfoStatus" class="status-ready">Ready</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Schema Browser -->
     <div class="sidebar-section">
       <div class="sidebar-section-header">

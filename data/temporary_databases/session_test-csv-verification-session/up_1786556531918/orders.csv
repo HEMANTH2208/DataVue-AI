@@ -1,0 +1,3 @@
+order_id,customer_id,total_amount,status
+100,0001,45.50,Delivered
+200,0002,120.00,Shipped

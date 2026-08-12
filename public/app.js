@@ -63,10 +63,10 @@ async function checkHealth(model = null) {
     if (model) url.searchParams.set('model', model);
     const res = await fetch(url.toString());
     const data = await res.json();
-    providerLabel.textContent = `${data.llm_provider} · ${data.database.split('/').pop()}`;
+    providerLabel.textContent = data.llm_provider.toUpperCase();
     document.querySelector('.provider-dot').style.background = '#22c55e'; // Green when healthy
   } catch {
-    providerLabel.textContent = 'Offline';
+    providerLabel.textContent = 'OFFLINE';
     document.querySelector('.provider-dot').style.background = '#ef4444';
   }
 }
@@ -78,7 +78,9 @@ async function loadSchema() {
   schemaTree.innerHTML = '<div class="schema-loading">Loading schema...</div>';
   schemaRefresh.classList.add('spinning');
   try {
-    const res = await fetch(`${API_BASE}/api/schema`);
+    const url = new URL(`${API_BASE}/api/schema`);
+    if (sessionId) url.searchParams.set('session_id', sessionId);
+    const res = await fetch(url.toString());
     const data = await res.json();
     currentSchemaData = data.schema;
     if (schemaSearch) schemaSearch.value = ''; // Reset search on fresh load
@@ -681,11 +683,257 @@ if (modelSelect) {
    INIT
    ============================================================ */
 async function init() {
+  // Initialize unique session ID if not set
+  if (!sessionId) {
+    sessionId = 'session_' + Math.random().toString(36).substring(2, 15);
+    sessionIdLabel.textContent = `Session: ${sessionId.slice(0, 8)}…`;
+  }
+
   const defaultModel = modelSelect ? modelSelect.value : null;
+  initDatabaseUploadPanel();
   await checkHealth(defaultModel);
   await loadSchema();
+  await updateDatabaseStatusUI();
   setupChips();
   chatInput.focus();
 }
 
 init();
+
+/* ============================================================
+   DATABASE UPLOAD & SWITCHING LOGIC
+   ============================================================ */
+
+async function updateDatabaseStatusUI() {
+  if (!sessionId) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/database/status/${sessionId}`);
+    const data = await res.json();
+    
+    const infoName = document.getElementById('dbInfoName');
+    const infoType = document.getElementById('dbInfoType');
+    const infoTables = document.getElementById('dbInfoTables');
+    const infoStatus = document.getElementById('dbInfoStatus');
+    const infoIndicatorDot = document.getElementById('dbInfoIndicatorDot');
+
+    if (infoName) infoName.textContent = data.database_name || 'ecommerce.db';
+    if (infoType) infoType.textContent = data.database_type || 'SQLite';
+    
+    if (data.source_type === 'uploaded') {
+      document.getElementById('dbToggleUpload').classList.add('active');
+      document.getElementById('dbToggleDefault').classList.remove('active');
+      document.getElementById('dbUploadPanel').style.display = 'flex';
+      
+      // Update table count from current schema data
+      if (currentSchemaData) {
+        if (infoTables) infoTables.textContent = Object.keys(currentSchemaData).length;
+      } else {
+        const schemaRes = await fetch(`${API_BASE}/api/database/schema/${sessionId}`);
+        const schemaData = await schemaRes.json();
+        if (infoTables) infoTables.textContent = Object.keys(schemaData.schema || {}).length;
+      }
+      
+      if (infoStatus) {
+        infoStatus.textContent = data.status || 'Ready';
+        infoStatus.className = 'status-ready';
+      }
+      if (infoIndicatorDot) {
+        infoIndicatorDot.className = 'db-info-indicator-dot active';
+      }
+      
+      if (providerLabel) {
+        providerLabel.textContent = (modelSelect ? modelSelect.value : 'gemini').toUpperCase();
+      }
+    } else {
+      document.getElementById('dbToggleDefault').classList.add('active');
+      document.getElementById('dbToggleUpload').classList.remove('active');
+      document.getElementById('dbUploadPanel').style.display = 'none';
+      
+      if (infoTables) infoTables.textContent = '6'; // Default e-commerce DB has 6 tables
+      if (infoStatus) {
+        infoStatus.textContent = 'Ready';
+        infoStatus.className = 'status-ready';
+      }
+      if (infoIndicatorDot) {
+        infoIndicatorDot.className = 'db-info-indicator-dot active';
+      }
+      
+      if (providerLabel) {
+        providerLabel.textContent = (modelSelect ? modelSelect.value : 'gemini').toUpperCase();
+      }
+    }
+  } catch (err) {
+    console.error('Failed to update DB status UI:', err);
+  }
+}
+
+async function uploadDatabaseFile(file) {
+  if (!sessionId) {
+    sessionId = 'session_' + Math.random().toString(36).substring(2, 15);
+    sessionIdLabel.textContent = `Session: ${sessionId.slice(0, 8)}…`;
+  }
+
+  const uploadStatus = document.getElementById('dbUploadStatus');
+  const statusDot = document.getElementById('dbStatusDot');
+  const statusMessage = document.getElementById('dbStatusMessage');
+  const progressContainer = document.getElementById('dbProgressContainer');
+  const progressBar = document.getElementById('dbProgressBar');
+
+  if (uploadStatus) uploadStatus.style.display = 'flex';
+  if (statusDot) statusDot.className = 'db-status-dot uploading';
+  if (statusMessage) statusMessage.textContent = 'Uploading database...';
+  if (progressContainer) progressContainer.style.display = 'block';
+  if (progressBar) progressBar.style.width = '0%';
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const xhr = new XMLHttpRequest();
+  
+  xhr.upload.addEventListener('progress', (e) => {
+    if (e.lengthComputable) {
+      const percent = Math.round((e.loaded / e.total) * 100);
+      if (progressBar) progressBar.style.width = `${percent}%`;
+    }
+  });
+
+  xhr.onload = async () => {
+    if (xhr.status === 200) {
+      const response = JSON.parse(xhr.responseText);
+      
+      if (statusDot) statusDot.className = 'db-status-dot processing';
+      if (statusMessage) statusMessage.textContent = 'Validating and building schema...';
+      if (progressContainer) progressContainer.style.display = 'none';
+
+      if (response.session_id) {
+        sessionId = response.session_id;
+        sessionIdLabel.textContent = `Session: ${sessionId.slice(0, 8)}…`;
+      }
+
+      await loadSchema();
+      await updateDatabaseStatusUI();
+      
+      if (statusDot) statusDot.className = 'db-status-dot ready';
+      if (statusMessage) statusMessage.textContent = 'Database Connected ✓';
+      
+      // Invalidate chat logs on database switch to prevent query mixups
+      clearChatBtn.click();
+    } else {
+      let errorMsg = 'Upload failed';
+      try {
+        const errorData = JSON.parse(xhr.responseText);
+        errorMsg = errorData.error || errorMsg;
+      } catch {}
+      
+      if (statusDot) statusDot.className = 'db-status-dot error';
+      if (statusMessage) statusMessage.textContent = `Error: ${errorMsg}`;
+      if (progressContainer) progressContainer.style.display = 'none';
+      
+      const infoStatus = document.getElementById('dbInfoStatus');
+      if (infoStatus) {
+        infoStatus.textContent = 'Upload Error';
+        infoStatus.className = 'status-error';
+      }
+    }
+  };
+
+  xhr.onerror = () => {
+    if (statusDot) statusDot.className = 'db-status-dot error';
+    if (statusMessage) statusMessage.textContent = 'Error: Connection lost.';
+    if (progressContainer) progressContainer.style.display = 'none';
+  };
+
+  xhr.open('POST', `${API_BASE}/api/database/upload?session_id=${sessionId}`);
+  xhr.send(formData);
+}
+
+async function switchDatabase(sourceType) {
+  if (!sessionId) {
+    sessionId = 'session_' + Math.random().toString(36).substring(2, 15);
+    sessionIdLabel.textContent = `Session: ${sessionId.slice(0, 8)}…`;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/api/database/select/${sessionId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ source_type: sourceType }),
+    });
+
+    if (res.ok) {
+      await loadSchema();
+      await updateDatabaseStatusUI();
+      // Clear conversation context to prevent mixing queries
+      clearChatBtn.click();
+    } else {
+      const errorData = await res.json();
+      alert(`Failed to switch database: ${errorData.error}`);
+    }
+  } catch (err) {
+    console.error('Error switching database:', err);
+    alert('Failed to switch database. Please check your connection.');
+  }
+}
+
+function initDatabaseUploadPanel() {
+  const dbToggleDefault = document.getElementById('dbToggleDefault');
+  const dbToggleUpload = document.getElementById('dbToggleUpload');
+  const dbUploadPanel = document.getElementById('dbUploadPanel');
+  const dbDropZone = document.getElementById('dbDropZone');
+  const dbFileInput = document.getElementById('dbFileInput');
+
+  if (dbToggleDefault) {
+    dbToggleDefault.addEventListener('click', () => {
+      if (!dbToggleDefault.classList.contains('active')) {
+        switchDatabase('default');
+      }
+    });
+  }
+
+  if (dbToggleUpload) {
+    dbToggleUpload.addEventListener('click', () => {
+      if (!dbToggleUpload.classList.contains('active')) {
+        dbUploadPanel.style.display = 'flex';
+        dbToggleUpload.classList.add('active');
+        dbToggleDefault.classList.remove('active');
+        
+        fetch(`${API_BASE}/api/database/status/${sessionId || ''}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.source_type === 'uploaded' || data.original_uploaded_path) {
+              switchDatabase('uploaded');
+            }
+          }).catch(() => {});
+      }
+    });
+  }
+
+  if (dbDropZone && dbFileInput) {
+    dbDropZone.addEventListener('click', () => dbFileInput.click());
+    
+    dbFileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        uploadDatabaseFile(e.target.files[0]);
+      }
+    });
+
+    dbDropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dbDropZone.classList.add('dragover');
+    });
+
+    dbDropZone.addEventListener('dragleave', () => {
+      dbDropZone.classList.remove('dragover');
+    });
+
+    dbDropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dbDropZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length > 0) {
+        uploadDatabaseFile(e.dataTransfer.files[0]);
+      }
+    });
+  }
+}
